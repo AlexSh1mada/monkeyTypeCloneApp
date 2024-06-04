@@ -1,10 +1,15 @@
+import { words as INITIAL_WORDS } from './data.js'
+
 const $time = document.querySelector('time');
 const $paragraph = document.querySelector('p');
 const $input = document.querySelector('input');
+const $game = document.querySelector('#game');
+const $results = document.querySelector('#results');
+const $wpm = document.querySelector('h3');
+const $accuracy = document.querySelector('h3:last-child');
 
 const INITIAL_TIME = 30;
 
-const TEXT = 'the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog';
 
 let words = []
 let currentTime = INITIAL_TIME;
@@ -13,7 +18,9 @@ let currentTime = INITIAL_TIME;
 initGame()
 initEvents()
 function initGame() {
-    words = TEXT.split(' ').slice(0, 32)
+    words = INITIAL_WORDS.toSorted(
+        () => Math.random() - 0.5
+    ).slice(0, 32)
     currentTime = INITIAL_TIME;
 
     $time.textContent = currentTime;
@@ -75,6 +82,36 @@ function onKeyDown(event) {
 
         const classToAdd = hasMissingLetters ? 'marked' : 'correct'
         $currentWord.classList.add(classToAdd)
+        return 
+    }
+
+    if(key === 'Backspace') {
+        const $prevWord = $currentWord.previousElementSibling
+        const $prevLetter = $currentLetter.previousElementSibling
+
+        if(!$prevWord && !$prevLetter) {
+            event.preventDefault()
+            return
+        }
+        
+        const $wordMarked = $paragraph.querySelector('word.marked')
+
+        if($wordMarked && !$prevLetter) {
+            event.preventDefault()
+            $prevWord.classList.remove('marked')
+            $prevWord.classList.add('marked')
+
+            const $letterToGo = $prevWord.querySelector('letter:last-child')
+
+            $currentLetter.classList.remove('active')
+            $letterToGo.classList.add('active')
+
+            $input.value = [
+                ...$prevWord.querySelectorAll('letter.correct, letter.incorrect')
+            ].map($elem => {
+                return $elem.classList.contains('correct') ? $elem.innerText : '*'
+            }).join(' ')
+        }
     }
 }
 
@@ -114,5 +151,23 @@ function onKeyUp() {
 }
 
 function gameOver() {
-    console.log('game over')
+    $game.style.display = 'none'
+    $results.style.display = 'flex'
+
+    const correctWordsCount = $paragraph.querySelectorAll('word.correct').length
+    const correctLetterCount = $paragraph.querySelectorAll('letter.correct').length
+    const incorrectLetterCount = $paragraph.querySelectorAll('letter.incorrect').length
+
+    const totalLetters = correctLetterCount + incorrectLetterCount
+    const accuracy = totalLetters > 0 
+    ? (correctLetterCount / totalLetters) * 100
+    : 0
+
+
+    //WPM = wordstyped / 5 (.5)
+
+    /* const wordsTyped = totalLetters / (5 * .5) */
+    const wpm = correctWordsCount / (5 * .5)
+    $wpm.textContent = wpm
+    $accuracy.textContent = `${accuracy.toFixed(2)}%`
 }
