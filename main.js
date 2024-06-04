@@ -5,10 +5,11 @@ const $paragraph = document.querySelector('p');
 const $input = document.querySelector('input');
 const $game = document.querySelector('#game');
 const $results = document.querySelector('#results');
-const $wpm = document.querySelector('h3');
-const $accuracy = document.querySelector('h3:last-child');
+const $wpm = document.querySelector('#results-wpm');
+const $accuracy = document.querySelector('#results-accuracy');
+const $button = document.querySelector('#reload-button');
 
-const INITIAL_TIME = 30;
+const INITIAL_TIME = 3;
 
 
 let words = []
@@ -18,6 +19,10 @@ let currentTime = INITIAL_TIME;
 initGame()
 initEvents()
 function initGame() {
+    $game.style.display = 'flex';
+    $results.style.display = 'none'
+
+    
     words = INITIAL_WORDS.toSorted(
         () => Math.random() - 0.5
     ).slice(0, 32)
@@ -56,6 +61,7 @@ function initEvents() {
     })
     $input.addEventListener('keydown', onKeyDown)
     $input.addEventListener('keyup', onKeyUp)
+    $button.addEventListener('click', initGame)
 }
 
 function onKeyDown(event) {
@@ -167,7 +173,7 @@ function gameOver() {
     //WPM = wordstyped / 5 (.5)
 
     /* const wordsTyped = totalLetters / (5 * .5) */
-    const wpm = correctWordsCount / (5 * .5)
+    const wpm = correctWordsCount * 60 / INITIAL_TIME
     $wpm.textContent = wpm
     $accuracy.textContent = `${accuracy.toFixed(2)}%`
 }
